@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urpak Edu - Authentication</title>
+    <style>
+        /* Brand Design System & CSS Variables */
+        :root {
+            --indigo: #5B4FE9;
+            --indigo-dark: #4438D6;
+            --indigo-light: #EDEBFF;
+            --bg: #F7F7FC;
+            --card: #FFFFFF;
+            --ink: #1A1B2E;
+            --ink-soft: #6B6C80;
+            --border: #E9E9F3;
+            --green: #1FAE64;
+            --radius: 16px;
+            --shadow: 0 1px 2px rgba(20,20,50,0.04), 0 8px 24px rgba(20,20,50,0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* Main Container */
+        .auth-container {
+            max-width: 1000px;
+            width: 100%;
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            display: flex;
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        /* Left Panel - Brand Welcome */
+        .brand-panel {
+            flex: 1;
+            background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-dark) 100%);
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .brand-logo {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-header {
+            font-size: 36px;
+            font-weight: 700;
+            line-height: 1.3;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .brand-header .highlight {
+            color: var(--green);
+        }
+
+        .brand-description {
+            font-size: 16px;
+            line-height: 1.6;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Right Panel - Interactive */
+        .interactive-panel {
+            flex: 1.2;
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Flash Messages Container (Flask Integration) */
+        .flash-messages {
+            margin-bottom: 24px;
+        }
+
+        .flash-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .flash-message.error {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: 1px solid #FECACA;
+        }
+
+        .flash-message.success {
+            background: #DCFCE7;
+            color: #16A34A;
+            border: 1px solid #BBF7D0;
+        }
+
+        .flash-message.info {
+            background: #DBEAFE;
+            color: #2563EB;
+            border: 1px solid #BFDBFE;
+        }
+
+        /* Form Headers */
+        .form-header {
+            margin-bottom: 32px;
+        }
+
+        .form-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--ink);
+        }
+
+        .form-subtitle {
+            font-size: 14px;
+            color: var(--ink-soft);
+        }
+
+        /* Input Styles */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink);
+            margin-bottom: 8px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--ink);
+            background: var(--card);
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 3px var(--indigo-light);
+        }
+
+        .input-field::placeholder {
+            color: var(--ink-soft);
+        }
+
+        /* Button Styles */
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--indigo);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--indigo-dark);
+        }
+
+        .btn-secondary {
+            background: var(--indigo-light);
+            color: var(--indigo);
+        }
+
+        .btn-secondary:hover {
+            background: #DCD9FF;
+        }
+
+        /* Login Form */
+        .login-form {
+            display: block;
+        }
+
+        .login-form.hidden {
+            display: none;
+        }
+
+        .form-footer {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 14px;
+            color: var(--ink-soft);
+        }
+
+        .form-footer a {
+            color: var(--indigo);
+            text-decoration: none;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Registration Wizard */
+        .registration-wizard {
+            display: none;
+        }
+
+        .registration-wizard.active {
+            display: block;
+        }
+
+        /* Step Indicator */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 32px;
+            gap: 8px;
+        }
+
+        .step-indicator.hidden {
+            display: none;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 14px;
+            font-weight: 600;
+            background: var(--border);
+            color: var(--ink-soft);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-item.active {
+            background: var(--indigo);
+            color: white;
+            box-shadow: 0 0 0 4px var(--indigo-light);
+        }
+
+        .step-item.completed {
+            background: var(--green);
+            color: white;
+        }
+
+        .step-line {
+            width: 40px;
+            height: 2px;
+            background: var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .step-line.completed {
+            background: var(--green);
+        }
+
+        /* Wizard Steps */
+        .wizard-step {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .wizard-step.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Step 1 - Role Selection */
+        .role-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .role-card {
+            padding: 16px 20px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--card);
+        }
+
+        .role-card:hover {
+            border-color: var(--indigo);
+            background: var(--indigo-light);
+        }
+
+        .role-card.selected {
+            border-color: var(--indigo);
+            background: var(--indigo-light);
+        }
+
+        .role-card-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .role-icon {
+            font-size: 24px;
+        }
+
+        .role-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--ink);
+        }
+
+        .role-radio {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .role-card.selected .role-radio {
+            border-color: var(--indigo);
+            background: var(--indigo);
+        }
+
+        .role-radio::after {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .role-card.selected .role-radio::after {
+            opacity: 1;
+        }
+
+        /* Step 2 - Basic Info */
+        .date-input {
+            cursor: pointer;
+        }
+
+        /* Step 3 - Phone Verification */
+        .phone-input-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .phone-input {
+            flex: 1;
+        }
+
+        .btn-send-code {
+            width: auto;
+            white-space: nowrap;
+        }
+
+        /* Step 4 - OTP Verification */
+        .otp-container {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .otp-input {
+            width: 56px;
+            height: 56px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: var(--card);
+            transition: all 0.2s ease;
+        }
+
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--indigo);
+            box-shadow: 0 0 0 3px var(--indigo-light);
+        }
+
+        .timer-text {
+            text-align: center;
+            font-size: 14px;
+            color: var(--ink-soft);
+            margin-bottom: 24px;
+        }
+
+        .timer-text .resend-link {
+            color: var(--indigo);
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .timer-text .resend-link:hover {
+            text-decoration: underline;
+        }
+
+        /* Success Screen */
+        .success-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .success-screen.active {
+            display: block;
+        }
+
+        .success-badge {
+            width: 80px;
+            height: 80px;
+            background: var(--green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .success-badge svg {
+            width: 40px;
+            height: 40px;
+            color: white;
+        }
+
+        .success-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--ink);
+            margin-bottom: 12px;
+        }
+
+        .success-subtitle {
+            font-size: 15px;
+            color: var(--ink-soft);
+            margin-bottom: 32px;
+            line-height: 1.6;
+        }
+
+        /* Navigation Buttons */
+        .wizard-navigation {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .btn-back {
+            background: var(--bg);
+            color: var(--ink);
+            border: 1px solid var(--border);
+        }
+
+        .btn-back:hover {
+            background: var(--border);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .auth-container {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .brand-panel {
+                padding: 32px;
+            }
+
+            .brand-header {
+                font-size: 28px;
+            }
+
+            .interactive-panel {
+                padding: 32px;
+            }
+
+            .step-indicator {
+                margin-bottom: 24px;
+            }
+
+            .otp-input {
+                width: 48px;
+                height: 48px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Left Panel - Brand Welcome -->
+        <div class="brand-panel">
+            <div class="brand-logo">Urpak Edu</div>
+            <h1 class="brand-header">
+                Болашақ біліммен<br>
+                <span class="highlight">бүгіннен басталады</span>
+            </h1>
+            <p class="brand-description">
+                Жасанды интеллект негізіндегі заманауи білім беру платформасы. Оқушылар, мұғалімдер және ата-аналар үшін арнайы құралдар мен ресурстар.
+            </p>
+        </div>
+
+        <!-- Right Panel - Interactive -->
+        <div class="interactive-panel">
+            <!-- Flask Flash Messages Container -->
+            <div class="flash-messages">
+                <!-- {% with messages = get_flashed_messages(with_categories=true) %} -->
+                <!--     {% if messages %} -->
+                <!--         {% for category, message in messages %} -->
+                <!--             <div class="flash-message {{ category }}">{{ message }}</div> -->
+                <!--         {% endfor %} -->
+                <!--     {% endif %} -->
+                <!-- {% endwith %} -->
+            </div>
+
+            <!-- Login Form -->
+            <form class="login-form" id="loginForm" method="POST" action="/login">
+                <div class="form-header">
+                    <h2 class="form-title">Платформаға кіру</h2>
+                    <p class="form-subtitle">Жүйеге кіру үшін деректеріңізді енгізіңіз</p>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="username">Пайдаланушы аты немесе email</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        class="input-field" 
+                        placeholder="Мысалы: aruzhan_k"
+                        required
+                    >
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label" for="password">Құпия сөз</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="input-field" 
+                        placeholder="••••••••"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn btn-primary">Кіру</button>
+
+                <div class="form-footer">
+                    Платформада әлі тіркелмедіңіз бе? <a id="showRegistration">Тіркелу</a>
+                </div>
+            </form>
+
+            <!-- Registration Wizard -->
+            <div class="registration-wizard" id="registrationWizard">
+                <!-- Step Indicator -->
+                <div class="step-indicator" id="stepIndicator">
+                    <div class="step-item active" data-step="1">1</div>
+                    <div class="step-line"></div>
+                    <div class="step-item" data-step="2">2</div>
+                    <div class="step-line"></div>
+                    <div class="step-item" data-step="3">3</div>
+                    <div class="step-line"></div>
+                    <div class="step-item" data-step="4">4</div>
+                </div>
+
+                <form id="registrationForm" method="POST" action="/register">
+                    <!-- Step 1: Role Selection -->
+                    <div class="wizard-step active" data-step="1">
+                        <div class="form-header">
+                            <h2 class="form-title">Кто вы?</h2>
+                            <p class="form-subtitle">Өзіңіздің рөліңізді таңдаңыз</p>
+                        </div>
+
+                        <div class="role-cards">
+                            <div class="role-card selected" data-role="student">
+                                <div class="role-card-content">
+                                    <span class="role-icon">👨‍🎓</span>
+                                    <span class="role-label">Я ученик</span>
+                                </div>
+                                <div class="role-radio"></div>
+                                <input type="radio" name="role" value="student" checked style="display: none;">
+                            </div>
+
+                            <div class="role-card" data-role="teacher">
+                                <div class="role-card-content">
+                                    <span class="role-icon">👩‍🏫</span>
+                                    <span class="role-label">Я учитель</span>
+                                </div>
+                                <div class="role-radio"></div>
+                                <input type="radio" name="role" value="teacher" style="display: none;">
+                            </div>
+
+                            <div class="role-card" data-role="parent">
+                                <div class="role-card-content">
+                                    <span class="role-icon">👪</span>
+                                    <span class="role-label">Я родитель</span>
+                                </div>
+                                <div class="role-radio"></div>
+                                <input type="radio" name="role" value="parent" style="display: none;">
+                            </div>
+                        </div>
+
+                        <div class="wizard-navigation">
+                            <button type="button" class="btn btn-back" id="backToLogin">Артқа</button>
+                            <button type="button" class="btn btn-primary" id="step1Next">Продолжить</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Basic Info -->
+                    <div class="wizard-step" data-step="2">
+                        <div class="form-header">
+                            <h2 class="form-title">Ваши данные</h2>
+                            <p class="form-subtitle">Негізгі ақпаратты енгізіңіз</p>
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" for="fullname">Аты-жөні</label>
+                            <input 
+                                type="text" 
+                                id="fullname" 
+                                name="fullname" 
+                                class="input-field" 
+                                placeholder="Аружан"
+                                required
+                            >
+                        </div>
+
+                        <div class="input-group">
+                            <label class="input-label" for="birthday">Дата рождения</label>
+                            <input 
+                                type="date" 
+                                id="birthday" 
+                                name="birthday" 
+                                class="input-field date-input"
+                                required
+                            >
+                        </div>
+
+                        <div class="wizard-navigation">
+                            <button type="button" class="btn btn-back" id="step2Back">Артқа</button>
+                            <button type="button" class="btn btn-primary" id="step2Next">Продолжить</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Phone Verification -->
+                    <div class="wizard-step" data-step="3">
+                        <div class="form-header">
+                            <h2 class="form-title">Контактный номер</h2>
+                            <p class="form-subtitle">Телефон нөміріңізді енгізіңіз</p>
+                        </div>
+
+                        <div class="phone-input-group">
+                            <input 
+                                type="tel" 
+                                id="phone" 
+                                name="phone" 
+                                class="input-field phone-input" 
+                                placeholder="+7 (707) 000-00-00"
+                                required
+                            >
+                            <button type="button" class="btn btn-secondary btn-send-code" id="sendCodeBtn">Получить код</button>
+                        </div>
+
+                        <div class="wizard-navigation">
+                            <button type="button" class="btn btn-back" id="step3Back">Артқа</button>
+                            <button type="button" class="btn btn-primary" id="step3Next" disabled>Продолжить</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: OTP Verification -->
+                    <div class="wizard-step" data-step="4">
+                        <div class="form-header">
+                            <h2 class="form-title">Подтверждение</h2>
+                            <p class="form-subtitle">SMS арқылы келген кодты енгізіңіз</p>
+                        </div>
+
+                        <div class="otp-container">
+                            <input type="text" class="otp-input" maxlength="1" data-index="0">
+                            <input type="text" class="otp-input" maxlength="1" data-index="1">
+                            <input type="text" class="otp-input" maxlength="1" data-index="2">
+                            <input type="text" class="otp-input" maxlength="1" data-index="3">
+                        </div>
+
+                        <p class="timer-text">
+                            Отправить код повторно через <span id="timer">00:45</span>
+                            <span class="resend-link" id="resendLink" style="display: none;">Отправить снова</span>
+                        </p>
+
+                        <div class="wizard-navigation">
+                            <button type="button" class="btn btn-back" id="step4Back">Артқа</button>
+                            <button type="submit" class="btn btn-primary" id="confirmBtn">Подтвердить</button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Success Screen -->
+                <div class="success-screen" id="successScreen">
+                    <div class="success-badge">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <h2 class="success-title">Добро пожаловать в Urpak Edu!</h2>
+                    <p class="success-subtitle">
+                        Сіздің тіркелуіңіз сәтті аяқталды. Енді платформаның барлық мүмкіндіктерінен пайдалана аласыз.
+                    </p>
+                    <button type="button" class="btn btn-primary" id="goToDashboard">Перейти в кабинет</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const loginForm = document.getElementById('loginForm');
+        const registrationWizard = document.getElementById('registrationWizard');
+        const showRegistrationBtn = document.getElementById('showRegistration');
+        const backToLoginBtn = document.getElementById('backToLogin');
+        const stepIndicator = document.getElementById('stepIndicator');
+        const successScreen = document.getElementById('successScreen');
+        const registrationForm = document.getElementById('registrationForm');
+
+        // Role Selection
+        const roleCards = document.querySelectorAll('.role-card');
+        const step1NextBtn = document.getElementById('step1Next');
+        const step2BackBtn = document.getElementById('step2Back');
+        const step2NextBtn = document.getElementById('step2Next');
+        const step3BackBtn = document.getElementById('step3Back');
+        const step3NextBtn = document.getElementById('step3Next');
+        const step4BackBtn = document.getElementById('step4Back');
+        const sendCodeBtn = document.getElementById('sendCodeBtn');
+        const confirmBtn = document.getElementById('confirmBtn');
+        const goToDashboardBtn = document.getElementById('goToDashboard');
+
+        // OTP Inputs
+        const otpInputs = document.querySelectorAll('.otp-input');
+        const timerElement = document.getElementById('timer');
+        const resendLink = document.getElementById('resendLink');
+
+        let currentStep = 1;
+        let timerInterval;
+        let timeLeft = 45;
+
+        // Show Registration Wizard
+        showRegistrationBtn.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            registrationWizard.classList.add('active');
+            resetWizard();
+        });
+
+        // Back to Login
+        backToLoginBtn.addEventListener('click', () => {
+            registrationWizard.classList.remove('active');
+            loginForm.classList.remove('hidden');
+        });
+
+        // Role Card Selection
+        roleCards.forEach(card => {
+            card.addEventListener('click', () => {
+                roleCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                
+                const radio = card.querySelector('input[type="radio"]');
+                radio.checked = true;
+            });
+        });
+
+        // Step Navigation
+        step1NextBtn.addEventListener('click', () => goToStep(2));
+        step2BackBtn.addEventListener('click', () => goToStep(1));
+        step2NextBtn.addEventListener('click', () => goToStep(3));
+        step3BackBtn.addEventListener('click', () => goToStep(2));
+        step3NextBtn.addEventListener('click', () => goToStep(4));
+        step4BackBtn.addEventListener('click', () => goToStep(3));
+
+        // Send Code Button
+        sendCodeBtn.addEventListener('click', () => {
+            const phone = document.getElementById('phone').value;
+            if (phone) {
+                step3NextBtn.disabled = false;
+                sendCodeBtn.textContent = 'Код жіберілді';
+                sendCodeBtn.disabled = true;
+            }
+        });
+
+        // OTP Input Handling
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                
+                if (value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+                
+                // Check if all OTP fields are filled
+                const allFilled = Array.from(otpInputs).every(inp => inp.value.length === 1);
+                if (allFilled) {
+                    confirmBtn.disabled = false;
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+
+            input.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pasteData = e.clipboardData.getData('text').slice(0, 4);
+                pasteData.split('').forEach((char, i) => {
+                    if (otpInputs[i]) {
+                        otpInputs[i].value = char;
+                    }
+                });
+                if (pasteData.length === 4) {
+                    confirmBtn.disabled = false;
+                }
+            });
+        });
+
+        // Form Submission
+        registrationForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            showSuccessScreen();
+        });
+
+        // Go to Dashboard
+        goToDashboardBtn.addEventListener('click', () => {
+            window.location.href = '/dashboard';
+        });
+
+        // Resend Code
+        resendLink.addEventListener('click', () => {
+            startTimer();
+            resendLink.style.display = 'none';
+            timerElement.style.display = 'inline';
+        });
+
+        // Go to Step Function
+        function goToStep(step) {
+            currentStep = step;
+            
+            // Update wizard steps
+            document.querySelectorAll('.wizard-step').forEach(s => {
+                s.classList.remove('active');
+            });
+            document.querySelector(`.wizard-step[data-step="${step}"]`).classList.add('active');
+
+            // Update step indicator
+            updateStepIndicator(step);
+
+            // Start timer on step 4
+            if (step === 4) {
+                startTimer();
+            }
+        }
+
+        // Update Step Indicator
+        function updateStepIndicator(activeStep) {
+            document.querySelectorAll('.step-item').forEach(item => {
+                const step = parseInt(item.dataset.step);
+                item.classList.remove('active', 'completed');
+                
+                if (step === activeStep) {
+                    item.classList.add('active');
+                } else if (step < activeStep) {
+                    item.classList.add('completed');
+                    item.innerHTML = '✓';
+                } else {
+                    item.innerHTML = step;
+                }
+            });
+
+            document.querySelectorAll('.step-line').forEach((line, index) => {
+                if (index < activeStep - 1) {
+                    line.classList.add('completed');
+                } else {
+                    line.classList.remove('completed');
+                }
+            });
+        }
+
+        // Start Timer
+        function startTimer() {
+            timeLeft = 45;
+            clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerElement.textContent = `0${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerElement.style.display = 'none';
+                    resendLink.style.display = 'inline';
+                }
+            }, 1000);
+        }
+
+        // Show Success Screen
+        function showSuccessScreen() {
+            stepIndicator.classList.add('hidden');
+            document.querySelectorAll('.wizard-step').forEach(s => {
+                s.classList.remove('active');
+            });
+            successScreen.classList.add('active');
+            clearInterval(timerInterval);
+        }
+
+        // Reset Wizard
+        function resetWizard() {
+            currentStep = 1;
+            stepIndicator.classList.remove('hidden');
+            successScreen.classList.remove('active');
+            
+            document.querySelectorAll('.wizard-step').forEach(s => {
+                s.classList.remove('active');
+            });
+            document.querySelector('.wizard-step[data-step="1"]').classList.add('active');
+            
+            updateStepIndicator(1);
+            
+            // Reset form fields
+            registrationForm.reset();
+            
+            // Reset role selection
+            roleCards.forEach(c => c.classList.remove('selected'));
+            roleCards[0].classList.add('selected');
+            roleCards[0].querySelector('input[type="radio"]').checked = true;
+            
+            // Reset OTP inputs
+            otpInputs.forEach(input => input.value = '');
+            
+            // Reset send code button
+            sendCodeBtn.textContent = 'Получить код';
+            sendCodeBtn.disabled = false;
+            step3NextBtn.disabled = true;
+            
+            // Reset timer
+            clearInterval(timerInterval);
+            timerElement.textContent = '00:45';
+            timerElement.style.display = 'inline';
+            resendLink.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
